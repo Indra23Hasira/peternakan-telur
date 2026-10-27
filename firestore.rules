@@ -1,0 +1,94 @@
+rules_version = '2';
+
+// Firestore rules — Aplikasi Peternakan Telur
+// Pasang di: Firebase Console → Firestore Database → Rules → tempel seluruh isi file ini → Publish.
+// Catatan: rules ini MENGGANTIKAN rules lama (aplikasi jastip tidak bisa akses data lagi).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /farms/{farmId} {
+      function signedIn() { return request.auth != null; }
+      function email() { return request.auth.token.email; }
+      function memberPath() { return /databases/$(database)/documents/farms/$(farmId)/members/$(email()); }
+      function isMember() {
+        return signedIn() && exists(memberPath()) && get(memberPath()).data.get('aktif', true) != false;
+      }
+      function role() { return get(memberPath()).data.role; }
+      function isOwner() { return isMember() && role() == 'owner'; }
+      function isAdmin() { return isMember() && role() in ['owner', 'admin']; }
+      // hanya field tertentu yang boleh berubah (untuk petugas yang memotong stok / deplesi)
+      function onlyKeys(keys) {
+        return request.resource.data.diff(resource == null ? {} : resource.data).affectedKeys().hasOnly(keys);
+      }
+
+      // Dokumen farm berisi nama & pengaturan. Bisa dibaca user login (dipakai saat setup awal).
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && !exists(/databases/$(database)/documents/farms/$(farmId))
+        && request.resource.data.ownerEmail == email();
+      allow update: if isOwner();
+
+      // Anggota: id dokumen = email login (username@usaha.local)
+      match /members/{memberEmail} {
+        allow read: if isMember() || (signedIn() && memberEmail == email());
+        allow create: if isOwner()
+          || (signedIn() && memberEmail == email()
+              && request.resource.data.role == 'owner'
+              && get(/databases/$(database)/documents/farms/$(farmId)).data.ownerEmail == email());
+        allow update, delete: if isOwner();
+      }
+
+      // Master data: semua anggota boleh baca, admin/owner boleh tulis
+      match /kandang/{id} { allow read: if isMember(); allow write: if isAdmin(); }
+      match /blok/{id}    { allow read: if isMember(); allow write: if isAdmin(); }
+      match /barang/{id}  { allow read: if isMember(); allow write: if isAdmin(); }
+
+      // Batch: petugas hanya boleh menambah counter deplesi lewat input harian
+      match /batch/{id} {
+        allow read: if isMember();
+        allow write: if isAdmin();
+        allow update: if isMember() && onlyKeys(['totalMati', 'totalAfkir']);
+      }
+
+      // Input harian: semua anggota boleh isi & edit, hapus hanya admin/owner
+      match /produksiHarian/{id} {
+        allow read, create, update: if isMember();
+        allow delete: if isAdmin();
+      }
+
+      // Saldo stok barang (tanpa harga). Petugas hanya boleh mengubah field jumlah.
+      match /stokBarang/{id} {
+        allow read: if isMember();
+        allow write: if isAdmin();
+        allow create, update: if isMember() && onlyKeys(['jumlah']);
+      }
+
+      // Saldo stok telur per grade
+      match /stokTelur/{id} {
+        allow read, write: if isMember();
+      }
+
+      // Harga jual: owner langsung aktif, admin hanya bisa mengajukan (pending)
+      match /hargaJual/{id} {
+        allow read: if isAdmin();
+        allow create: if isOwner() || (isAdmin() && request.resource.data.status == 'pending');
+        allow update: if isOwner()
+          || (isAdmin() && resource.data.status == 'pending' && request.resource.data.status == 'pending');
+        allow delete: if isOwner() || (isAdmin() && resource.data.status == 'pending');
+      }
+
+      // Data admin/owner
+      match /supplier/{id}    { allow read, write: if isAdmin(); }
+      match /pembelian/{id}   { allow read, write: if isAdmin(); }
+      match /opname/{id}      { allow read, write: if isAdmin(); }
+      match /mutasiTelur/{id} { allow read, write: if isAdmin(); }
+      match /wilayah/{id}     { allow read, write: if isAdmin(); }
+      match /pelanggan/{id}   { allow read, write: if isAdmin(); }
+      match /penjualan/{id}   { allow read, write: if isAdmin(); }
+      match /armada/{id}      { allow read, write: if isAdmin(); }
+      match /trip/{id}        { allow read, write: if isAdmin(); }
+      match /kas/{id}         { allow read, write: if isAdmin(); }
+    }
+  }
+}
