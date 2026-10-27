@@ -50,8 +50,13 @@ export default function Pengaturan() {
   async function saveMember(e) {
     e.preventDefault()
     const uname = m.username.trim().toLowerCase()
-    if (!/^[a-z0-9._-]+$/.test(uname))
-      return setMMsg({ type: 'error', text: 'Username hanya huruf kecil, angka, titik, minus, atau underscore.' })
+    const okUsername = /^[a-z0-9._-]+$/.test(uname)
+    const okEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(uname)
+    if (!okUsername && !okEmail)
+      return setMMsg({
+        type: 'error',
+        text: 'Isi username (huruf kecil, angka, titik, minus, underscore) atau email asli.',
+      })
     const id = editId || usernameToEmail(uname)
     if (id === user.email && m.role !== 'owner')
       return setMMsg({ type: 'error', text: 'Tidak bisa menurunkan role akun sendiri.' })
@@ -107,10 +112,12 @@ export default function Pengaturan() {
       <Panel title="Anggota & hak akses">
         <p className="muted small">
           Langkah menambah orang: (1) buat akun di Firebase Console → Authentication → Add user, email{' '}
-          <code>username@usaha.local</code> + password; (2) daftarkan username yang sama di sini beserta perannya.
+          <code>username@usaha.local</code> (atau email asli) + password awal; (2) daftarkan username/email yang sama di
+          sini beserta perannya; (3) minta orangnya ganti password di menu Akun & password. Kalau ada yang lupa password:
+          hapus user-nya di Console lalu Add user lagi dengan email yang sama — peran & data tetap aman.
         </p>
         <form className="form-grid" onSubmit={saveMember}>
-          <Field label="Username *">
+          <Field label="Username / email *">
             <input
               value={m.username}
               disabled={!!editId}

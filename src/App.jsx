@@ -21,6 +21,7 @@ import Pengiriman from './pages/Pengiriman'
 import TripDetail from './pages/TripDetail'
 import Kas from './pages/Kas'
 import Pengaturan from './pages/Pengaturan'
+import Akun from './pages/Akun'
 
 const ADM = ['owner', 'admin']
 
@@ -57,6 +58,7 @@ function Gate() {
         <Route path="/pengiriman" element={g(ADM, <Pengiriman />)} />
         <Route path="/trip/:id" element={g(ADM, <TripDetail />)} />
         <Route path="/kas" element={g(ADM, <Kas />)} />
+        <Route path="/akun" element={<Akun />} />
         <Route path="/pengaturan" element={g(['owner'], <Pengaturan />)} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -839,3 +839,12 @@ td.empty {
     padding: 0;
   }
 }
+
+.auth-link {
+  color: var(--primary);
+  font-size: 14px;
+  margin-top: 4px;
+}
+.auth-link:hover {
+  text-decoration: underline;
+}

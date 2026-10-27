@@ -18,15 +18,21 @@ Alamat aplikasi: **https://indra23hasira.github.io/peternakan-telur/**
 1. **Authentication → Sign-in method**: Email/Password aktif.
 2. **Authentication → Settings → Authorized domains**: pastikan ada `indra23hasira.github.io`.
 3. **Firestore Database → Rules**: hapus semua, tempel isi file `firestore.rules`, klik **Publish**.
-4. **Authentication → Users → Add user** untuk owner, mis. email `indra@usaha.local` + password.
+4. **Authentication → Users → Add user** untuk owner. Disarankan pakai **email asli** (mis. Gmail) supaya fitur *Lupa password* bisa dipakai. Bisa juga email sintetis `indra@usaha.local`.
 
 ### 3. Login pertama
-1. Buka aplikasi, login dengan username `indra` (tanpa `@usaha.local`).
+1. Buka aplikasi, login dengan email asli tadi (atau username `indra` kalau pakai `@usaha.local`).
 2. Muncul layar **Setup awal** → isi nama peternakan → akun ini otomatis jadi **Owner**.
 
 ### 4. Menambah admin & petugas kandang
 1. Firebase Console → Authentication → Add user: `username@usaha.local` + password.
 2. Di aplikasi (owner): **Pengaturan & anggota** → tambah username yang sama + perannya.
+
+## Login & password
+- **Username** (mis. `budi`) → otomatis jadi `budi@usaha.local`. Cocok untuk petugas yang tidak punya email.
+- **Email asli** (mengandung `@`) → dipakai apa adanya; tombol *Lupa password?* di halaman login mengirim link reset ke email itu.
+- Semua orang bisa ganti password sendiri di menu **Akun & password**.
+- **Lupa password (akun username)**: Firebase Console → Authentication → Users → hapus user itu → *Add user* lagi dengan email yang **sama persis** + password baru. Peran & data tidak hilang, karena keanggotaan disimpan per email, bukan per ID akun.
 
 ## Urutan isi data awal
 1. **Kandang & batch**: kandang (A, B) → blok/baris per kandang → batch ayam (blok yang ditempati, tanggal masuk, umur, jumlah awal).

@@ -28,6 +28,7 @@ export const NAV = [
   { to: '/kas', label: 'Kas operasional', roles: ADM },
   { section: 'Sistem' },
   { to: '/pengaturan', label: 'Pengaturan & anggota', roles: ['owner'] },
+  { to: '/akun', label: 'Akun & password', roles: ALL },
 ]
 
 export default function Layout({ children }) {
